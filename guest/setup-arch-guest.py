@@ -23,7 +23,7 @@ def fdisk():
     fdisk_proc.stdin.write('w\n')  # commit changes
     fdisk_proc.stdin.flush()
 
-    if fdisk_proc.wait(timeout=5) != 0:
+    if fdisk_proc.wait() != 0:
         error('Error partitioning disk: ' + str(fdisk_proc.returncode))
 
     print("Formatted /dev/vda")
