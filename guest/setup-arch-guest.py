@@ -17,14 +17,19 @@ def ping_arch():
 def fdisk():
     print("Formatting /dev/vda")
     fdisk_proc = Popen(['fdisk', '/dev/vda'], stdin=PIPE, text=True)
-    fdisk_mk_swap(fdisk_proc)
-    fdisk_mk_root(fdisk_proc)
-    fdisk_proc.stdin.write('a\n2\n')  # make MBR bootable on root partition
-    fdisk_proc.stdin.write('w\n')  # commit changes
-    fdisk_proc.stdin.flush()
-
-    if fdisk_proc.wait() != 0:
-        error('Error partitioning disk: ' + str(fdisk_proc.returncode))
+    swap = 'n\np\n1\n\n+5G\nt\n82\n'
+    root = 'n\np\n2\n\n-16.5K\nt\n83\n'
+    full = swap + root + 'w\n'
+    fdisk_proc.communicate(input=full, timeout=5)
+    # fdisk_proc.stdin.write('n\np\n1\n\n+5G\nt\n82\n')
+    # fdisk_mk_swap(fdisk_proc)
+    # fdisk_mk_root(fdisk_proc)
+    # fdisk_proc.stdin.write('a\n2\n')  # make MBR bootable on root partition
+    # fdisk_proc.stdin.write('w\n')  # commit changes
+    # fdisk_proc.stdin.flush()
+    #
+    # if fdisk_proc.wait() != 0:
+    #     error('Error partitioning disk: ' + str(fdisk_proc.returncode))
 
     print("Formatted /dev/vda")
 
