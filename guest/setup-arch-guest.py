@@ -9,7 +9,7 @@ def main():
 
 def ping_arch():
     try:
-        check_call(['ping', 'archlinux.org'], timeout=1)
+        check_call(['ping', '-c', '1', 'archlinux.org'], timeout=3)
     except TimeoutExpired:
         error('Unable to ping archlinux.org, network not configured')
 
@@ -19,24 +19,24 @@ def fdisk():
     fdisk_proc = Popen(['fdisk', '/dev/vda'], stdin=PIPE, text=True)
     fdisk_mk_swap(fdisk_proc)
     fdisk_mk_root(fdisk_proc)
-    fdisk_proc.stdin.write('a\n\n')  # make MBR bootable on default partition
+    fdisk_proc.stdin.write('a\n2\n')  # make MBR bootable on root partition
     fdisk_proc.stdin.write('w\n')  # commit changes
     fdisk_proc.stdin.flush()
 
-    if fdisk_proc.wait(timeout=1) != 0:
+    if fdisk_proc.wait(timeout=5) != 0:
         error('Error partitioning disk: ' + str(fdisk_proc.returncode))
 
     print("Formatted /dev/vda")
 
 
 def fdisk_mk_swap(fdisk_proc):
-    fdisk_proc.stdin.write('n\np\n\n')  # new primary partition, default number
+    fdisk_proc.stdin.write('n\np\n1\n')  # new primary partition, default number
     fdisk_proc.stdin.write('\n+5G\n')  # default sector start, +5GB end partition (swap)
     fdisk_proc.stdin.write('t\n82\n')  # type to 'Linux swap'
     
     
 def fdisk_mk_root(fdisk_proc):
-    fdisk_proc.stdin.write('n\np\n\n')  # new primary partition, default number
+    fdisk_proc.stdin.write('n\np\n2\n')  # new primary partition, default number
     fdisk_proc.stdin.write('\n-16.5K\n')  # default sector start, take rest of disk minus 16.5KiB at the end
     fdisk_proc.stdin.write('t\n83\n')  # type to 'Linux'
     
@@ -48,6 +48,7 @@ def write_line(popen, msg=''):
 
 def error(msg):
     print(msg, file=sys.stderr)
+    exit(1)
 
 
 if __name__ == '__main__':
